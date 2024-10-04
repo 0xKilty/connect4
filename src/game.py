@@ -40,5 +40,3 @@ class Game:
 
             log = ""
             move = not move
-        
-        
