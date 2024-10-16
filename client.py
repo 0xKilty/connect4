@@ -1,5 +1,6 @@
 import socket
 import threading
+import json
 from src.game import Board, Slots, TextStyling
 
 class client:
@@ -13,13 +14,9 @@ class client:
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
-                if message:
-                    if "picked" in message or "wins" in message or "not your turn" in message:
-                        print(message + "\n")
-                    elif "Column is full or invalid!" in message:
-                        print(message + "\n")
-                    else:
-                        self.update_board(message)
+                if not message: break
+                print("\r\n" + message, end="")
+                self.display_prompt()
             except Exception as e:
                 print(f"Error: {e}")
                 break
@@ -27,11 +24,42 @@ class client:
     def update_board(self, message):
         print(f"\n{message}\n")
 
+    def display_prompt(self):
+        print("q (quit) c (chat) pick a column [1-7]> ", end='', flush=True)
+
     def start(self):
+        join_message = message_to_json("join")
+        self.client_socket.sendall(join_message)
         threading.Thread(target=self.receive_messages, daemon=True).start()
         while True:
-            column_pick = input("Pick a column [1-7]: ")
-            self.client_socket.sendall(column_pick.encode())
+            self.display_prompt()
+            cli_pick = input()
+            if cli_pick == "c":
+                chat_data = input("Message: ")
+                message = message_to_json("chat", {"message": chat_data})
+            elif cli_pick == "q":
+                message = message_to_json("quit")
+                self.client_socket.close()
+            elif is_valid_column_pick(cli_pick):
+                message = message_to_json("move", {"pick": cli_pick})
+            else:
+                print(f"Invalid option {cli_pick}")
+                continue
+            self.client_socket.sendall(message)
+
+def message_to_json(message_type, data=None):
+    message = {
+        "type": message_type,
+        "data": data
+    }
+    json_message = json.dumps(message)
+    return json_message.encode()
+
+def is_valid_column_pick(column_pick):
+    if column_pick.isdigit():
+        number = int(column_pick)
+        return 1 <= number <= 7
+    return False
 
 if __name__ == "__main__":
     client = client()
