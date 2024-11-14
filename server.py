@@ -98,6 +98,8 @@ class Server:
                 elif message['type'] == 'quit':
                     self.handle_quit(player_id)
                     break
+                elif message['type'] == 'chat':
+                    self.handle_chat(player_id, message['data']['message'])
                 else:
                     logging.info(f"Received invalid packet type {message['type']}")
         except socket.error as e:
