@@ -12,6 +12,7 @@ class Server:
         self.clients = []
         self.game = Game()
         self.current_turn = 1
+        self.waiting_for_play_again = False
 
     def broadcast(self, message):
         for client in self.clients:
@@ -21,7 +22,7 @@ class Server:
                 logging.error(f"Unexpected error sending message: {e}")
 
     def handle_join(self, player_id, addr):
-        log_message = f"{color_playerid(player_id)} joined from {addr[0]}:{addr[1]}" 
+        log_message = f"{color_playerid(player_id)} joined from {addr[0]}:{addr[1]}"
         self.broadcast(log_message)
 
     def handle_chat(self, player_id, message):
@@ -35,6 +36,9 @@ class Server:
             self.clients.remove(client_socket)
 
     def handle_move(self, player_id, message):
+        if self.waiting_for_play_again:
+            return
+
         column_pick = message['data']['pick']
         if self.game.board.insert(int(column_pick), self.game.player1.icon if player_id == 1 else self.game.player2.icon):
             game_state_message = [
@@ -47,6 +51,9 @@ class Server:
 
             if self.game.board.check_winner(self.game.player1.icon if player_id == 1 else self.game.player2.icon):
                 self.broadcast(f"Player {player_id} wins!")
+                self.broadcast("Do you want to play again? (yes/no)")
+                self.waiting_for_play_again = True
+                self.play_again_decision = {1: None, 2: None}
                 return True
             self.current_turn = 2 if player_id == 1 else 1
             return False
@@ -56,6 +63,8 @@ class Server:
 
     def handle_client(self, client_socket, player_id, addr):
         self.clients.append(client_socket)
+        self.play_again_decision = {1: None, 2: None}
+
         try:
             while True:
                 data = client_socket.recv(1024).decode()
@@ -66,13 +75,26 @@ class Server:
                 if message['type'] == 'join':
                     self.handle_join(player_id, addr)
                 elif message['type'] == 'move':
-                    if player_id != self.current_turn:
-                        client_socket.sendall("It's not your turn! Please wait.\n".encode())
-                        continue
-                    if self.handle_move(player_id, message):
+                    if not self.waiting_for_play_again:
+                        if player_id != self.current_turn:
+                            client_socket.sendall("It's not your turn! Please wait.\n".encode())
+                            continue
+                        if self.handle_move(player_id, message):
+                            self.broadcast("Waiting for both players to decide...")
+                    else:
+                        client_socket.sendall("Please respond with 'yes' or 'no' to play again.\n".encode())
+                elif message['type'] == 'play_again' and self.waiting_for_play_again:
+                    response = message['data'].get('response', '').lower()
+                    self.play_again_decision[player_id] = response
+                    other_player_id = 3 - player_id
+                    if self.play_again_decision[other_player_id] is None:
+                        self.broadcast(f"{color_playerid(player_id)} has decided. Waiting for the other player...")
+                    if self.play_again_decision[1] == "yes" and self.play_again_decision[2] == "yes":
+                        self.reset_game()
+                        self.waiting_for_play_again = False
+                    elif "no" in self.play_again_decision.values():
+                        self.broadcast("Game over. One of the players chose not to continue.")
                         break
-                elif message['type'] == 'chat':
-                    self.handle_chat(player_id, message['data']['message'])
                 elif message['type'] == 'quit':
                     self.handle_quit(player_id)
                     break
@@ -90,6 +112,12 @@ class Server:
                 self.clients.remove(client_socket)
             client_socket.close()
 
+    def reset_game(self):
+        self.game = Game()
+        self.current_turn = 1
+        self.broadcast("A new game has started! Player 1's turn.")
+        self.play_again_decision = {1: None, 2: None}
+        self.waiting_for_play_again = False
 
     def start(self):
         logging.info("Server started and waiting for clients...")

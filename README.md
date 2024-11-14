@@ -5,8 +5,8 @@
 This is a simple Connect Four game implemented using Python and sockets.
 
 **How to play:**
-1. **Start the server:** Run the `server.py` script.
-2. **Connect clients:** Run the `client.py` script on two different machines or terminals.
+1. **Start the server:** Run the `server.py` script. (`python3 server.py -p <PORT>`)
+2. **Connect clients:** Run the `client.py` script on two different machines or terminals. (`python3 client.py -i <IP> -p <PORT>`)
 3. **Play the game:** Players take turns entering their moves. The first player to get four in a row wins!
 
 **Messaging protocol**
@@ -14,6 +14,10 @@ This is a simple Connect Four game implemented using Python and sockets.
 - `move` - allows players to make moves in the game if they are valid and it's their turn
 - `chat` - allows players to chat with eachother
 - `quit` - allows players to quit the game
+
+**Messaging protocol (After the end of a Game)**
+- `yes` - starts a new game, if both clients type yes.
+- `no` - ends the game.
 
 **Technologies used:**
 * Python
