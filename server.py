@@ -123,6 +123,7 @@ class Server:
             logging.error(f"Error handling {color_playerid(player_id)}: {e}")
         finally:
             logging.info(f"Closing connection for {color_playerid(player_id)}")
+            self.broadcast(f"{color_playerid(player_id)} disconnected...")
             if client_socket in self.clients:
                 self.clients.remove(client_socket)
             client_socket.close()
