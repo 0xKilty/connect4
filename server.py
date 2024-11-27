@@ -3,6 +3,7 @@ import threading
 import logging
 import json
 import time
+import argparse
 from src.game import Game
 
 class Server:
@@ -148,6 +149,13 @@ def color_playerid(player_id):
     color = (2 * player_id) - 1
     return f"\033[3{color};1mPlayer {player_id}\033[0m"
 
+def valid_port(port):
+    port = int(port)
+    if 1024 < port <= 65535:
+        return port
+    else:
+        raise argparse.ArgumentTypeError("Port must be between 1025 and 65535.")
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.DEBUG,
@@ -158,10 +166,20 @@ if __name__ == "__main__":
         ]
     )
 
+    parser = argparse.ArgumentParser(description="Start the server on a specified port.")
+    parser.add_argument(
+        "--port",
+        type=valid_port,
+        required=False,
+        default=12345,
+        help="The port number the server should listen on (must be between 1025 and 65535)."
+    )
+    args = parser.parse_args()
 
-    server = Server()
+    server = Server(port=args.port)
     try:
         if server.up:
             server.start()
     except KeyboardInterrupt:
+        server.server_socket.close()
         logging.info("Server exiting gracefully.")

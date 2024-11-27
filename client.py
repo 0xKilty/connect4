@@ -115,10 +115,12 @@ if __name__ == "__main__":
     else:
         print("Please specify an ip or a machine")
 
-    print(f"Trying to connect to {ip}:{args.port}")
-    client = client(host=ip, port=args.port)
-    if client.connected:
-        client.start()
-    else:
-        print("Unable to start client due to connection failure.")
-
+    try:
+        print(f"Trying to connect to {ip}:{args.port}")
+        client = client(host=ip, port=args.port)
+        if client.connected:
+            client.start()
+        else:
+            print("Unable to start client due to connection failure.")
+    except KeyboardInterrupt:
+        print("Exiting")

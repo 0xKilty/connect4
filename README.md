@@ -19,6 +19,12 @@ This is a simple Connect Four game implemented using Python and sockets.
 - `yes` - starts a new game, if both clients type yes.
 - `no` - ends the game.
 
+**Security Concerns**
+- **Denial of Service** - This client server architecture is vulnerable to DoS attacks in that there is no rate limiting in place on the server to slow large amounts of traffic.
+- **Lack of Authentication** - Standalone, the game has no authentication and is vulnerable to port scanning and identification. 
+- **Memory Corruption** - Even though Python is assumed to be memory safe, there still exists the possibility of a memory corruption vulnerability (e.g. buffer overflow) or a memory error (e.g. stack overflow).
+- **Session Hijacking** - If a client disconnects, then reconnects, there is no knowing if that user is the same as the original, an attacker could continuously attempt to connect to the server, waiting for a client to disconnect and take their place.
+
 **Technologies used:**
 * Python
 * Sockets
