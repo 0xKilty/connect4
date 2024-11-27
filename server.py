@@ -2,12 +2,21 @@ import socket
 import threading
 import logging
 import json
+import time
 from src.game import Game
 
 class Server:
     def __init__(self, host='0.0.0.0', port=12345):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((host, port))
+        self.up = False
+        try:
+            self.server_socket.bind((host, port))
+            self.up = True
+        except OSError as e:
+            if e.errno == 98:
+                logging.error(f"Error: Port {host}:{port} is already in use. Please try a different port.")
+                self.server_socket.close()
+                return
         self.server_socket.listen(2)
         self.clients = []
         self.game = Game()
@@ -75,6 +84,9 @@ class Server:
                 if message['type'] == 'join':
                     self.handle_join(player_id, addr)
                 elif message['type'] == 'move':
+                    if len(self.clients) != 2:
+                        client_socket.sendall("Not enough players, please wait for another player to join.\n".encode())
+                        continue
                     if not self.waiting_for_play_again:
                         if player_id != self.current_turn:
                             client_socket.sendall("It's not your turn! Please wait.\n".encode())
@@ -137,9 +149,19 @@ def color_playerid(player_id):
     return f"\033[3{color};1mPlayer {player_id}\033[0m"
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(f"server_{time.strftime('%Y%m%d_%H%M%S')}.log"),
+            logging.StreamHandler()
+        ]
+    )
+
+
     server = Server()
     try:
-        server.start()
+        if server.up:
+            server.start()
     except KeyboardInterrupt:
         logging.info("Server exiting gracefully.")

@@ -1,13 +1,27 @@
 import socket
 import threading
 import json
+import time
 import argparse
-from src.game import Board, Slots, TextStyling
+from src.game import Board
 
 class client:
     def __init__(self, host='localhost', port=12345):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((host, port))
+        self.connected = False
+        for i in range(10):
+            try:
+                self.client_socket.connect((host, port))
+                print("Connected successfully.")
+                self.connected = True
+                break
+            except ConnectionRefusedError:
+                print(f'{i + 1}/10: Connection refused to {host}:{port}, retrying...')
+                time.sleep(1)
+        else:
+            print("Failed to connect after 10 attempts. Exiting.")
+            self.client_socket.close()
+            return
         self.board = Board()
         self.player_number = None
         self.waiting_for_decision = False
@@ -52,6 +66,7 @@ class client:
                 elif cli_pick == "q":
                     message = message_to_json("quit")
                     self.client_socket.close()
+                    break
                 elif is_valid_column_pick(cli_pick):
                     message = message_to_json("move", {"pick": cli_pick})
                 elif cli_pick.lower() in {"yes", "no"} and self.waiting_for_decision:
@@ -102,4 +117,8 @@ if __name__ == "__main__":
 
     print(f"Trying to connect to {ip}:{args.port}")
     client = client(host=ip, port=args.port)
-    client.start()
+    if client.connected:
+        client.start()
+    else:
+        print("Unable to start client due to connection failure.")
+
