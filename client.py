@@ -95,7 +95,9 @@ def get_csu_cs_machine_ip(name):
         ip_address = socket.gethostbyname(name)
         return ip_address
     except socket.gaierror:
-        return f"Unable to get IP address for domain {name}"
+        print(f"Unable to get IP address for domain {name}")
+        quit()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parse IP address and port or a machine name.")
@@ -114,6 +116,7 @@ if __name__ == "__main__":
         ip = args.ip
     else:
         print("Please specify an ip or a machine")
+        quit()
 
     try:
         print(f"Trying to connect to {ip}:{args.port}")
