@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Start the server on a specified port.")
     parser.add_argument(
-        "--port",
+        "--port", "-p",
         type=valid_port,
         required=False,
         default=12345,
