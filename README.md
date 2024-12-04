@@ -26,6 +26,7 @@ This is a simple Connect Four game implemented using Python and sockets.
 - **Session Hijacking** - If a client disconnects, then reconnects, there is no knowing if that user is the same as the original, an attacker could continuously attempt to connect to the server, waiting for a client to disconnect and take their place.
 
 **Roadmap**
+
 We would like to take this project further in terms of UI. Using a Web UI and setting up the server to handle many games at once would make the game more easily accessible to people hence gaining a lot more users. Then we can take it a step further with an account system for users to keep track of the games they have played and who they player against. Then we can introduce an elo system to make matchmaking more fair where better players will be paired with better players. It starts with accessibility for people in the form of a website, then accounts, then an elo system. That is where we would take this project.
 
 **Retrospective**
