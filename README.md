@@ -25,9 +25,16 @@ This is a simple Connect Four game implemented using Python and sockets.
 - **Memory Corruption** - Even though Python is assumed to be memory safe, there still exists the possibility of a memory corruption vulnerability (e.g. buffer overflow) or a memory error (e.g. stack overflow).
 - **Session Hijacking** - If a client disconnects, then reconnects, there is no knowing if that user is the same as the original, an attacker could continuously attempt to connect to the server, waiting for a client to disconnect and take their place.
 
+**Roadmap**
+We would like to take this project further in terms of UI. Using a Web UI and setting up the server to handle many games at once would make the game more easily accessible to people hence gaining a lot more users. Then we can take it a step further with an account system for users to keep track of the games they have played and who they player against. Then we can introduce an elo system to make matchmaking more fair where better players will be paired with better players. It starts with accessibility for people in the form of a website, then accounts, then an elo system. That is where we would take this project.
+
 **Retrospective**
 - **What went right**
+  - Client server architecture works well and there are few errors for the communication and if there are errors, they are properly handled.
+  - The game state and game requierments are good where there have to be 2 players in order for the game to start and both players need to be present for a move to take place. Then all the rules and logic of connect four are taken into account and function properly.
 - **What could be improved upon**
+  - The UI is not great as there are some weird formatting issues on some terminals, so a better option would be to create a Web UI.
+  - If, from the perspective of the server, a player disconnects, then reconnects, there is no way of knowing if that is the same player, so the session could be hijacked. There are a couple of other security concerns that need to be addressed.
 
 **Technologies used:**
 * Python
